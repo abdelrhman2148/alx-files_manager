@@ -5,18 +5,19 @@ import userUtils from '../utils/user';
 
 class AuthController {
   /**
-   * Signs in the user by generating a new authentication token.
+   * Should sign-in the user by generating a new authentication token
    *
-   * - Requires the `Authorization` header in the format of Basic Auth:
-   *   (Base64 encoded string of `<email>:<password>`).
-   * - Verifies the user's email and password (stored as SHA1 hash) against the database.
-   * - If the user is not found or credentials are invalid, returns:
-   *   { "error": "Unauthorized" } with status 401.
-   * - If authenticated:
-   *   - Generates a random string token using `uuidv4`.
-   *   - Creates a Redis key in the format `auth_<token>` to store the user ID.
-   *   - Sets the token to expire after 24 hours.
-   *   - Returns the token: { "token": "<generated_token>" } with status 200.
+   * By using the header Authorization and the technique of the Basic auth
+   * (Base64 of the <email>:<password>), find the user associate to this email
+   * and with this password (reminder: we are storing the SHA1 of the password)
+   * If no user has been found, return an error Unauthorized with a status code 401
+   * Otherwise:
+   * Generate a random string (using uuidv4) as token
+   * Create a key: auth_<token>
+   * Use this key for storing in Redis (by using the redisClient create previously)
+   * the user ID for 24 hours
+   * Return this token: { "token": "155342df-2399-41da-9e8c-458b6ac52a0c" }
+   * with a status code 200
    */
   static async getConnect(request, response) {
     const Authorization = request.header('Authorization') || '';
@@ -54,12 +55,12 @@ class AuthController {
   }
 
   /**
-   * Signs out the user by invalidating their authentication token.
+   * Should sign-out the user based on the token
    *
-   * - Retrieves the user's token from the request.
-   * - If the token is invalid or user is not found, returns:
-   *   { "error": "Unauthorized" } with status 401.
-   * - If valid, deletes the token from Redis and returns no content with status 204.
+   * Retrieve the user based on the token:
+   * If not found, return an error Unauthorized with a status code 401
+   * Otherwise, delete the token in Redis and return nothing with a
+   * status code 204
    */
   static async getDisconnect(request, response) {
     const { userId, key } = await userUtils.getUserIdAndKey(request);
